@@ -2,6 +2,8 @@
 
 
 #include "Twinblast.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 
 ATwinblast::ATwinblast()
 {
@@ -20,11 +22,29 @@ ATwinblast::ATwinblast()
 		GetMesh()->SetAnimInstanceClass(ABP_Twinblast.Class);
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> AM_Twinblast_BasicAttack(TEXT("/Game/ParagonTwinblast/Characters/Heroes/TwinBlast/Animations/Primary_Fire_Med_A_Montage"));
-	if (AM_Twinblast_BasicAttack.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> AM_Twinblast_primaryAttack(TEXT("/Game/ParagonTwinblast/Characters/Heroes/TwinBlast/Animations/Primary_Fire_Med_A_Montage"));
+	if (AM_Twinblast_primaryAttack.Succeeded())
 	{
-		BasicAttackAnimMontage = AM_Twinblast_BasicAttack.Object;
+		PrimaryAttackAnimMontage = AM_Twinblast_primaryAttack.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> PS_Twinblast_PrimayAttack_1(TEXT("/Game/ParagonTwinblast/FX/Particles/Abilities/Primary/FX/P_TwinBlast_Primary_MuzzleFlash"));
+	if (PS_Twinblast_PrimayAttack_1.Succeeded())
+	{
+		FirstPrimaryAttackParticle = PS_Twinblast_PrimayAttack_1.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> PS_Twinblast_PrimayAttack_2(TEXT("/Game/ParagonTwinblast/FX/Particles/Abilities/Primary/FX/P_TwinBlast_Primary_MuzzleFlash"));
+	if (PS_Twinblast_PrimayAttack_2.Succeeded())
+	{
+		SecondPrimaryAttackParticle = PS_Twinblast_PrimayAttack_2.Object;
+	}
+
+	FirstPistolStartPoint = CreateDefaultSubobject<USceneComponent>(TEXT("FirstPistolStartPoint"));
+	FirstPistolStartPoint->SetupAttachment(GetMesh(), TEXT("Muzzle_01"));
+
+	SecondPistolStartPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SecondPistolStartPoint"));
+	SecondPistolStartPoint->SetupAttachment(GetMesh(), TEXT("Muzzle_02"));
 
 	bIsAttacking = false;
 	bSaveAttack = false;
@@ -35,10 +55,10 @@ void ATwinblast::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("LMB Attack", IE_Pressed, this, &ATwinblast::SetupBasicAttack);
+	PlayerInputComponent->BindAction("LMB Attack", IE_Pressed, this, &ATwinblast::SetupPrimaryAttack);
 }
 
-void ATwinblast::SetupBasicAttack()
+void ATwinblast::SetupPrimaryAttack()
 {
 	if (bIsAttacking == true)
 	{
@@ -48,7 +68,7 @@ void ATwinblast::SetupBasicAttack()
 	{
 		bIsAttacking = true;
 
-		PlayBasicComboAttack();
+		PlayPrimaryComboAttack();
 	}
 }
 
@@ -58,21 +78,23 @@ void ATwinblast::SaveComboAttack()
 	{
 		bSaveAttack = false;
 
-		PlayBasicComboAttack();
+		PlayPrimaryComboAttack();
 	}
 }
 
-void ATwinblast::PlayBasicComboAttack()
+void ATwinblast::PlayPrimaryComboAttack()
 {
 	switch (AttackCount)
 	{
 	case 0:
 		AttackCount = 1;
-		PlayAnimMontage(BasicAttackAnimMontage);
+		PlayAnimMontage(PrimaryAttackAnimMontage);
+		UGameplayStatics::SpawnEmitterAttached(FirstPrimaryAttackParticle, FirstPistolStartPoint);
 		break;
 	case 1:
 		AttackCount = 0;
-		PlayAnimMontage(BasicAttackAnimMontage);
+		PlayAnimMontage(PrimaryAttackAnimMontage);
+		UGameplayStatics::SpawnEmitterAttached(FirstPrimaryAttackParticle, FirstPistolStartPoint);
 		break;
 	default:
 		break;
@@ -84,4 +106,9 @@ void ATwinblast::ResetCombo()
 	AttackCount = 0;
 	bSaveAttack = false;
 	bIsAttacking = false;
+}
+
+void ATwinblast::SecondFire()
+{
+	UGameplayStatics::SpawnEmitterAttached(SecondPrimaryAttackParticle, SecondPistolStartPoint);
 }

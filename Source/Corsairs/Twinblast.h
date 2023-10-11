@@ -9,6 +9,7 @@
 /**
  * 
  */
+class UParticleSystem;
 UCLASS()
 class CORSAIRS_API ATwinblast : public ACorsairsCharacter
 {
@@ -20,15 +21,18 @@ public:
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void SetupBasicAttack();
+	void SetupPrimaryAttack();
 
 	UFUNCTION(BlueprintCallable)
 	void SaveComboAttack();
 
-	void PlayBasicComboAttack();
+	void PlayPrimaryComboAttack();
 
 	UFUNCTION(BlueprintCallable)
 	void ResetCombo();
+
+	UFUNCTION(BlueprintCallable)
+	void SecondFire();
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attack, meta = (AllowPrivateAccess = "true"))
@@ -41,5 +45,17 @@ private:
 	int AttackCount;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Anim, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* BasicAttackAnimMontage;
+	UAnimMontage* PrimaryAttackAnimMontage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Particle, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* FirstPrimaryAttackParticle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Particle, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* SecondPrimaryAttackParticle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Particle, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* FirstPistolStartPoint;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Particle, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* SecondPistolStartPoint;
 };
